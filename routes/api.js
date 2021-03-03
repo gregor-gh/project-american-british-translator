@@ -12,6 +12,11 @@ module.exports = function (app) {
       const text = req.body.text;
       const locale = req.body.locale;
 
+      // if no text or locale return error
+      if ((!text && text!=="") || !locale) {
+        return res.json({ error: 'Required field(s) missing' });
+      }
+
       // if text is blank return error
       if (text === "") {
         return res.json({ error: "No text to translate" });
@@ -20,11 +25,6 @@ module.exports = function (app) {
       // if locale isn't recognised return error
       if (locale !== "american-to-british" && locale !== "british-to-american") {
         return res.json({ error: "Invalid value for locale field" });
-      }
-
-      // if no text or locale return error
-      if (!text || !locale) {
-        return res.json({ error: 'Required field(s) missing' });
       }
 
       // get object with html translation (including spans) and raw text translation (for unit tests that fCC request)
