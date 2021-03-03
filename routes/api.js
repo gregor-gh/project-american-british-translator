@@ -27,12 +27,14 @@ module.exports = function (app) {
         return res.json({ error: 'Required field(s) missing' });
       }
 
+      // get object with html translation (including spans) and raw text translation (for unit tests that fCC request)
       const translation = translator.translate(locale, text);
 
+      // if there is a transalation i.e. if the text was changed from one locale to another
       if (translation) {
-        return res.json(translation)
+        return res.json({ text, translation: translation.htmlTranslation }); // return the original text plus the html transalation (including spans)
       } else {
-        return res.json({ translation: "Everything looks good to me!" });
+        return res.json({ text, translation: "Everything looks good to me!" }); // otherwise return original text plus a "all good" message
       }
       
     });

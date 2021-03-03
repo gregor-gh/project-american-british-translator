@@ -6,7 +6,14 @@ const britishOnly = require('./british-only.js')
 class Translator {
 
   translate(locale, text) {
-    return "Test"
+
+    let rawTest = "Test";
+    let htmlTest = `<span class="highlight">Test</span>`;
+
+    return {
+      rawTranslation: rawTest,
+      htmlTranslation: htmlTest,
+    };
   }
 
 }
