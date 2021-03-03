@@ -18,7 +18,7 @@ module.exports = function (app) {
       }
 
       // if locale isn't recognised return error
-      if (locale !== "american-to-british" || locale !== "british-to-american") {
+      if (locale !== "american-to-british" && locale !== "british-to-american") {
         return res.json({ error: "Invalid value for locale field" });
       }
 
