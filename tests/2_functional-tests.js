@@ -79,7 +79,7 @@ suite('Functional Tests', () => {
         assert.equal(res.status, 200, "Should respond");
         assert.hasAllKeys(res.body, ["text", "translation"], "Should respond with text and translation");
         assert.equal(res.body.text, "Test", "Initial text should be returned");
-        assert.equal(res.body.translation, `"Everything looks good to me!`, "Everything good should be returned ");
+        assert.equal(res.body.translation, "Everything looks good to me!", "Everything good should be returned ");
 
         done();
       });
