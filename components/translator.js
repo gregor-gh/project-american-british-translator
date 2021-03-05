@@ -6,7 +6,6 @@ const britishOnly = require('./british-only.js')
 class Translator {
 
   translate(locale, text) {
-
     // use either americanonly.js or britishonly.js depending on locale
     let wordDictionary;
     if (locale === "american-to-british") {
@@ -42,102 +41,149 @@ class Translator {
       return b[0].length - a[0].length // first element of subarray
     });
 
-    // will temporarily store text as it is worked through, removing parts that have already been worked on
-    let workText = text;
-
-    //  use this to store a lowercase verison of the text for searching
-    let lowerText;
-
-    let changeArray = []; // used later for storing changes to build htmlText
-
-    // now for each entry in that array look if it's in the submitted text
-    fullArray.forEach(el => {
-
-      let n = 0; // will use this to search for the same word twice
-      //let limit; // use this to stop the same word being translated endlessly
-
-      while (n != -1) {
-
-        lowerText = workText.toLowerCase() // set lowertext to match the changeText to lowercase for this loop
-
-        n = lowerText.indexOf(el[0].toLowerCase()) // store the index of the searched word, will break out of loop if -1
-        if (n === -1) break;
-
-        // set the limit to be equal to the index found so that this word doesn't get picked up again if the first few letters are the same
-        //if (n <= limit) break;
-        //limit = n;
-        if (el[0] === "bicky") {
-          console.log("here");
-          let a = 1;
-        }
-
-        if (el[0] === "chippy") {
-          console.log("here");
-          let b = 1;
-        }
-
-        // now check for spaces or characters either side of the text (to avoid instances like "take" being taken as "ta" translkated to "thank you")
-        let left = lowerText[n - 1]; // letter to the left of the found word
-        let right = lowerText[n + el[0].length]; // letter to the right of the found word
-
-        // if at the start/end of text then these will be undefined, set to empty string instead
-        if (!left) left = "";
-        if (!right) right = "";
-
-        const regex = /[A-Z]/i // regex to serach for case insensitve letters
-
-        // if neither the left or th eright of the word is a letter it can be translated
-        if (!left.match(regex) && !right.match(regex)) {
-          // store an array of the text so that the full text can be reconstructed later
-          changeArray.push({
-            before: workText.substring(0, n),
-            translation: el[1],
-            after: workText.substring(n + el[0].length, workText.length)
-          });
-
-          // remove the text up to the point of translation
-          workText = workText.substring(n + el[0].length, workText.length);
-
-        } else {
-          break; // otherwise break out of loop for this particular word (this might need fixing)
-        }
-      }
-    })
-
-    // vars to build the text and html to return to api
-    let rawText = "";
-    let htmlText = "";
-
     // wrap the htmlText replacements with span so it highlights in green
     const htmlLeft = `<span class="highlight">`;
     const htmlRight = "</span>";
 
-    // need to add a case for times
-    changeArray.forEach((el, i) => {
-      if (i !== changeArray.length - 1) {
-        rawText += el.before + el.translation;
-        htmlText += el.before + htmlLeft + el.translation + htmlRight;
-      } else {
-        rawText += el.before + el.translation + el.after;
-        htmlText += el.before + htmlLeft + el.translation + htmlRight + el.after;
-      }
-    })
+    // working text to be used in recursion
+    let htmlText = text;
 
-    // TODO implement time
-    // FIXME I had a bicky then went to the chippy. if a longer word comes after a shorter word it will be ignored
+     // recursively loop through the dictionary until no more matches are found
+    const translateLoop = (done) => {
 
+      // if no more words are found then return the text
+      if (done) return htmlText;
 
-    // if the rawtest is the same as submitted text then return false as no changes were made
-    if (rawText.toLowerCase() === "") {
-      return false;
+      //  use this to store a lowercase verison of the text for searching
+      let lowerText;
+
+      // use this to store index of found word
+      let wordIndex;
+
+      // loop through each word in dictionary
+      fullArray.forEach(el => {
+        
+        lowerText = htmlText.toLowerCase(); // set lowertext to match the changeText to lowercase for this loop
+
+        wordIndex = lowerText.lastIndexOf(el[0].toLowerCase()); // store the index of the searched word, will break out of loop if -1
+
+        // if the word is found in the text
+        if (wordIndex >= 0) {
+
+          // now check for spaces or characters either side of the text (to avoid instances like "take" being taken as "ta" translkated to "thank you")
+          let left = lowerText[wordIndex - 1]; // letter to the left of the found word
+          let right = lowerText[wordIndex + el[0].length]; // letter to the right of the found word
+
+          // if at the start/end of text then these will be undefined, set to empty string instead
+          if (!left) left = "";
+          if (!right) right = "";
+
+          const regex = /[A-Z]|<|>/i // regex to serach for case insensitve letters and < > (added later for spans)
+
+          // if neither the left or th eright of the word is a letter it can be translated
+          if (!left.match(regex) && !right.match(regex)) {
+
+            // create a new version of the text with the changed word and the html span
+            htmlText = htmlText.substring(0, wordIndex) + htmlLeft + el[1] + htmlRight + htmlText.substring(wordIndex + el[0].length, htmlText.length);
+
+            // run the loop again to seach for additional words
+            translateLoop(false);
+          }
+        }    
+      })
+
+      // break loop?
+      translateLoop(true);
     }
 
+    // run through recursive loop
+    translateLoop(false);
 
+    // update html with time changes
+    htmlText = this.translateTimes(htmlText, locale, htmlLeft, htmlRight);
+
+    let rawText = htmlText;
+
+    // strip out html for fCC tests
+    rawText = this.cleanHtml(htmlLeft,rawText);
+    rawText = this.cleanHtml(htmlRight, rawText);
+    
+    // if raw text matches the original text then no changes were made
+    if (rawText === text) {
+      return false;
+    }
+      
+    // return modified text and html text
     return {
       rawTranslation: rawText,
       htmlTranslation: htmlText,
     };
   }
+
+  // helper function to loop through text and remove html tags
+  cleanHtml(html, text) {
+    while (true) {
+      let i = text.indexOf(html);
+      if (i === -1) break;
+      text = text.substring(0, i) + text.substring(i + html.length);
+    }
+    return text;
+  }
+
+  // function to handle times 
+  translateTimes(htmlText, locale, htmlLeft, htmlRight) {
+    // regex to search for times
+    let timeRegex;
+
+    let charToChange;
+    let charToChangeTo;
+
+    // array to store changes
+    let timeArray = [];
+
+    // regex will differ depending on if we're going american to british or vice versa
+    if (locale === "american-to-british") {
+      timeRegex = /[0-9]+:[0-9]+/g;
+      charToChange = ":";
+      charToChangeTo = ".";
+    } else {
+      timeRegex = /[0-9]+\.[0-9]+/g;
+      charToChange = ".";
+      charToChangeTo = ":";
+    }
+
+    // set a regex itereator
+    const matches = htmlText.matchAll(timeRegex);
+
+    // loop through matches
+    for (const match of matches) {
+      // store start and end indexes of match
+      const start = match.index;
+      const end = match.index + match[0].length;
+
+      // get match characters (to account for one and two digit times)
+      let timeToChange = htmlText.substring(start, end); // get time using match index and length
+      timeToChange = timeToChange.replace(charToChange, charToChangeTo); // replace time character
+      timeToChange = htmlLeft + timeToChange + htmlRight; // add html
+
+      // store the change in an array to update back-to-front later
+      timeArray.push({
+        timeToChange,
+        start,
+        end,
+      })
+    }
+
+    // now loop through the timechange array backwards (so as to not mess up indexes) and modify htmlText
+    for (let i = timeArray.length; i > 0; i--) {
+      const { start, end, timeToChange } = timeArray[i - 1];
+      htmlText = htmlText.substring(0, start) + timeToChange + htmlText.substring(end);
+    }
+
+    // return text back to main function
+    return htmlText;
+  }
+
 }
 
 module.exports = Translator;
