@@ -66,6 +66,15 @@ class Translator {
         // set the limit to be equal to the index found so that this word doesn't get picked up again if the first few letters are the same
         //if (n <= limit) break;
         //limit = n;
+        if (el[0] === "bicky") {
+          console.log("here");
+          let a = 1;
+        }
+
+        if (el[0] === "chippy") {
+          console.log("here");
+          let b = 1;
+        }
 
         // now check for spaces or characters either side of the text (to avoid instances like "take" being taken as "ta" translkated to "thank you")
         let left = lowerText[n - 1]; // letter to the left of the found word
@@ -115,10 +124,11 @@ class Translator {
     })
 
     // TODO implement time
-    // FIXME I had a bicky then went to the chippy. doesn't work for some reason
+    // FIXME I had a bicky then went to the chippy. if a longer word comes after a shorter word it will be ignored
+
 
     // if the rawtest is the same as submitted text then return false as no changes were made
-    if (rawText.toLowerCase() === text.toLowerCase()) {
+    if (rawText.toLowerCase() === "") {
       return false;
     }
 
