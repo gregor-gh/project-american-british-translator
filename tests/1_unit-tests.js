@@ -6,6 +6,8 @@ const translator = new Translator();
 
 suite('Unit Tests', () => {
 
+  suite("American To British Tests", () => {
+
     test("Translate Mangoes are my favorite fruit. to British English", done => {
       let input = "Mangoes are my favorite fruit.";
       let answer = "Mangoes are my favourite fruit.";
@@ -115,6 +117,10 @@ suite('Unit Tests', () => {
 
       done();
     });
+  });
+
+
+  suite("British To American Tests", () => {
 
     test("Translate We watched the footie match for a while.", done => {
       let input = "We watched the footie match for a while.";
@@ -225,6 +231,9 @@ suite('Unit Tests', () => {
 
       done();
     });
+  });
+
+  suite("Highlight Tests", () => { 
 
     test("Highlight translation in Mangoes are my favorite fruit.", done => {
       let input = "Mangoes are my favorite fruit.";
@@ -269,4 +278,5 @@ suite('Unit Tests', () => {
 
       done();
     });
+  });
 });
