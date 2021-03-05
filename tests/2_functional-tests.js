@@ -12,7 +12,7 @@ suite('Functional Tests', () => {
   test("Translation with text and locale fields: POST request to /api/translate", done => {
     chai.request(server)
       .post("/api/translate")
-      .send({ text: "Soccer", locale: "british-to-american" })
+      .send({ text: "Soccer", locale: "american-to-british" })
       .end((err, res) => {
         assert.equal(res.status, 200, "Should respond");
         assert.hasAllKeys(res.body, ["text", "translation"], "Should respond with text and translation");
